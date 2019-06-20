@@ -1,0 +1,9 @@
+C:\Users\James Getrost\dev.jamesgetrost.net\Strengths.Shared\bin\Debug\netstandard2.0\Strengths.Shared.deps.json
+C:\Users\James Getrost\dev.jamesgetrost.net\Strengths.Shared\bin\Debug\netstandard2.0\Strengths.Shared.dll
+C:\Users\James Getrost\dev.jamesgetrost.net\Strengths.Shared\bin\Debug\netstandard2.0\Strengths.Shared.pdb
+C:\Users\James Getrost\dev.jamesgetrost.net\Strengths.Shared\obj\Debug\netstandard2.0\Strengths.Shared.csprojAssemblyReference.cache
+C:\Users\James Getrost\dev.jamesgetrost.net\Strengths.Shared\obj\Debug\netstandard2.0\Strengths.Shared.csproj.CoreCompileInputs.cache
+C:\Users\James Getrost\dev.jamesgetrost.net\Strengths.Shared\obj\Debug\netstandard2.0\Strengths.Shared.AssemblyInfoInputs.cache
+C:\Users\James Getrost\dev.jamesgetrost.net\Strengths.Shared\obj\Debug\netstandard2.0\Strengths.Shared.AssemblyInfo.cs
+C:\Users\James Getrost\dev.jamesgetrost.net\Strengths.Shared\obj\Debug\netstandard2.0\Strengths.Shared.dll
+C:\Users\James Getrost\dev.jamesgetrost.net\Strengths.Shared\obj\Debug\netstandard2.0\Strengths.Shared.pdb
