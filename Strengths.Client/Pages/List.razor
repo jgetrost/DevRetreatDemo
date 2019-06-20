@@ -1,0 +1,293 @@
+﻿@page "/list"
+@using Strengths.Shared.Models
+@using OfficeOpenXml
+@using OfficeOpenXml.Style;
+@using System.Drawing;
+@inject HttpClient Http
+@inject IJSRuntime JsRuntime
+
+<h1>Strengths</h1>
+
+<p>This component demonstrates fetching data from SignalR.</p>
+<p>Active users: <span>@Count</span></p>
+
+<input type="text" placeholder="First Name" bind=@_newUser.FirstName/>
+<input type="text" placeholder="Last Name" bind=@_newUser.LastName/>
+
+<select onchange=@SetTheme1>
+    @if (themes == null)
+    {
+        <option selected disabled="true" value="-1">Loading...</option>
+    }
+    else
+    {
+        <option>Select...</option>
+        @foreach(Theme _theme in themes){
+            <option value=@_theme.Id>@_theme.Title</option>
+        }
+    }
+</select>
+
+<select onchange=@SetTheme2>
+    @if (themes == null)
+    {
+        <option selected disabled="true" value="-1">Loading...</option>
+    }
+    else
+    {
+        <option>Select...</option>
+        @foreach(Theme _theme in themes){
+            <option value=@_theme.Id>@_theme.Title</option>
+        }
+    }
+</select>
+
+<select onchange=@SetTheme3>
+    @if (themes == null)
+    {
+        <option selected disabled="true" value="-1">Loading...</option>
+    }
+    else
+    {
+        <option>Select...</option>
+        @foreach(Theme _theme in themes){
+            <option value=@_theme.Id>@_theme.Title</option>
+        }
+    }
+</select>
+
+<select onchange=@SetTheme4>
+    @if (themes == null)
+    {
+        <option selected disabled="true" value="-1">Loading...</option>
+    }
+    else
+    {
+        <option>Select...</option>
+        @foreach(Theme _theme in themes){
+            <option value=@_theme.Id>@_theme.Title</option>
+        }
+    }
+</select>
+
+<select onchange=@SetTheme5>
+    @if (themes == null)
+    {
+        <option selected disabled="true" value="-1">Loading...</option>
+    }
+    else
+    {
+        <option>Select...</option>
+        @foreach(Theme _theme in themes){
+            <option value=@_theme.Id>@_theme.Title</option>
+        }
+    }
+</select>
+
+<button onclick=@SubmitNewUser>Submit</button>
+
+
+@if (Users == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Users)
+            {
+                <tr>
+                    <td>@user.FullName</td>
+                    <td class=@getClassName(user.Theme1.Domain)>@user.Theme1.Title</td>
+                    <td class=@getClassName(user.Theme2.Domain)>@user.Theme2.Title</td>
+                    <td class=@getClassName(user.Theme3.Domain)>@user.Theme3.Title</td>
+                    <td class=@getClassName(user.Theme4.Domain)>@user.Theme4.Title</td>
+                    <td class=@getClassName(user.Theme5.Domain)>@user.Theme5.Title</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button onclick=@DownloadFile>Download Excel (.xlsx)</button>
+}
+
+@functions {
+    [Inject]
+    private HubConnectionBuilder _hubConnectionBuilder { get; set; }
+
+    HubConnection connection;
+
+    User _newUser = new User();
+
+    IList<Strengths.Shared.Models.User> Users = new List<Strengths.Shared.Models.User>();
+    int Count;
+
+    Theme[] themes;
+
+    protected override async Task OnInitAsync()
+    {
+        connection = new HubConnectionBuilder(JsRuntime).WithUrl("https://localhost:5101/strengthsHub").Build();
+        connection.On<Strengths.Shared.Models.User>("broadcastUser", this.OnBroadcastUser);
+        connection.On<int>("broadcastCount", this.OnBroadcastCount);
+        await connection.StartAsync();
+        themes = await Http.GetJsonAsync<Theme[]>("https://localhost:5101/api/Themes");
+    }
+
+    Task OnBroadcastUser(Strengths.Shared.Models.User user)
+    {
+        Users.Remove(Users.SingleOrDefault(u => u.FullName == user.FullName));
+        Users.Add(user);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    Task OnBroadcastCount(int count)
+    {
+        Count = count++;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    async Task SendUser()
+    {
+        await connection.InvokeAsync("sendUser", _newUser);
+    }
+
+    string getClassName(Strengths.Shared.Models.Domain domain){
+        return domain.Title.Replace(' ', '-').ToLower();
+    }
+
+    void SetTheme1(UIChangeEventArgs e){
+        _newUser.Theme1 = themes.Single(t => t.Id == int.Parse(e.Value.ToString()));
+    }
+
+    void SetTheme2(UIChangeEventArgs e){
+        _newUser.Theme2 = themes.Single(t => t.Id == int.Parse(e.Value.ToString()));
+    }
+
+    void SetTheme3(UIChangeEventArgs e){
+        _newUser.Theme3 = themes.Single(t => t.Id == int.Parse(e.Value.ToString()));
+    }
+
+    void SetTheme4(UIChangeEventArgs e){
+        _newUser.Theme4 = themes.Single(t => t.Id == int.Parse(e.Value.ToString()));
+    }
+    void SetTheme5(UIChangeEventArgs e){
+        _newUser.Theme5 = themes.Single(t => t.Id == int.Parse(e.Value.ToString()));
+    }
+
+    async void SubmitNewUser(){
+        if(_newUser.CheckThemesAreUnique() && _newUser.FirstName.Trim().Length > 0 && _newUser.LastName.Trim().Length > 0){
+            await this.SendUser();
+        }
+    }
+
+    void DownloadFile(){
+        using (var package = new ExcelPackage()){
+            var worksheet =package.Workbook.Worksheets.Add("Strengths Grid");
+
+            worksheet.Cells["B1:B1"].Value = "Stategic Thinking";
+            worksheet.Cells["B1:B1"].Style.Font.Color.SetColor(Color.White);
+            worksheet.Cells["B1:B1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            worksheet.Cells["B1:I1"].Merge = true;
+
+             worksheet.Cells["J1:J1"].Value = "Executing";
+             worksheet.Cells["J1:J1"].Style.Font.Color.SetColor(Color.White);
+             worksheet.Cells["J1:J1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            worksheet.Cells["J1:R1"].Merge = true;
+
+            worksheet.Cells["S1:S1"].Value = "Influencing";
+            worksheet.Cells["S1:S1"].Style.Font.Color.SetColor(Color.White);
+            worksheet.Cells["S1:S1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            worksheet.Cells["S1:Z1"].Merge = true;
+
+            worksheet.Cells["AA1:AA1"].Value = "Relationship Building";
+            worksheet.Cells["AA1:AA1"].Style.Font.Color.SetColor(Color.White);
+            worksheet.Cells["AA1:AA1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            worksheet.Cells["AA1:AI1"].Merge = true;
+
+            Color colFromHex = Color.FromArgb(156,0,0);
+            worksheet.Cells["B1:I1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["B1:I1"].Style.Fill.BackgroundColor.SetColor(colFromHex);
+            worksheet.Cells["B2:I2"].Style.Font.Color.SetColor(colFromHex);
+
+            colFromHex = Color.FromArgb(92,57,109);
+            worksheet.Cells["J1:R1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["J1:R1"].Style.Fill.BackgroundColor.SetColor(colFromHex);
+            worksheet.Cells["J2:R2"].Style.Font.Color.SetColor(colFromHex);
+
+            colFromHex = Color.FromArgb(246,179,51);
+            worksheet.Cells["S1:Z1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["S1:Z1"].Style.Fill.BackgroundColor.SetColor(colFromHex);
+            worksheet.Cells["S2:Z2"].Style.Font.Color.SetColor(colFromHex);
+
+            colFromHex = Color.FromArgb(31,76,116);
+            worksheet.Cells["AA1:AI1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells["AA1:AI1"].Style.Fill.BackgroundColor.SetColor(colFromHex);
+            worksheet.Cells["AA2:AI2"].Style.Font.Color.SetColor(colFromHex);
+
+            for(int i=0; i<themes.Count(); i++){
+                worksheet.Cells[2, i+2].Style.TextRotation = 90;
+                worksheet.Cells[2, i+2].Value = themes[i].Title;
+                worksheet.Cells[2, i+2].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                worksheet.Column(i+2).Width = 4;
+                worksheet.Column(i+2).Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            }
+
+            ExcelAddress cfAddress1 = new ExcelAddress("B3:I99");
+            var cfRule1 = worksheet.ConditionalFormatting.AddGreaterThan(cfAddress1);
+            cfRule1.Formula = "0";
+            cfRule1.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            cfRule1.Style.Font.Color.Color = Color.White;
+            cfRule1.Style.Fill.BackgroundColor.Color = Color.FromArgb(156,0,0);
+
+            ExcelAddress cfAddress2 = new ExcelAddress("J3:R99");
+            var cfRule2 = worksheet.ConditionalFormatting.AddGreaterThan(cfAddress2);
+            cfRule2.Formula = "0";
+            cfRule2.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            cfRule2.Style.Font.Color.Color = Color.White;
+            cfRule2.Style.Fill.BackgroundColor.Color = Color.FromArgb(92,57,109);
+
+            ExcelAddress cfAddress3 = new ExcelAddress("S3:Z99");
+            var cfRule3 = worksheet.ConditionalFormatting.AddGreaterThan(cfAddress3);
+            cfRule3.Formula = "0";
+            cfRule3.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            cfRule3.Style.Font.Color.Color = Color.White;
+            cfRule3.Style.Fill.BackgroundColor.Color = Color.FromArgb(246,179,51);
+
+            ExcelAddress cfAddress4 = new ExcelAddress("AA3:AI99");
+            var cfRule4 = worksheet.ConditionalFormatting.AddGreaterThan(cfAddress4);
+            cfRule4.Formula = "0";
+            cfRule4.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            cfRule4.Style.Font.Color.Color = Color.White;
+            cfRule4.Style.Fill.BackgroundColor.Color = Color.FromArgb(31,76,116);
+
+            for(int i=0; i<Users.Count(); i++){
+                worksheet.Cells[i+3, 1].Value = Users[i].LastName + ", " + Users[i].FirstName;
+                worksheet.Cells[i+3, Users[i].Theme1.Id+1].Value = 1;
+                worksheet.Cells[i+3, Users[i].Theme2.Id+1].Value = 2;
+                worksheet.Cells[i+3, Users[i].Theme3.Id+1].Value = 3;
+                worksheet.Cells[i+3, Users[i].Theme4.Id+1].Value = 4;
+                worksheet.Cells[i+3, Users[i].Theme5.Id+1].Value = 5;
+            }
+
+            worksheet.Column(1).Width = 25;
+
+            worksheet.Cells["A1:AI99"].Style.Font.Bold = true;
+            worksheet.Cells["A1:AI99"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            
+            FileUtil.SaveAs(JsRuntime, "BlazorGrid.xlsx", package.GetAsByteArray());
+        }
+    }
+}
